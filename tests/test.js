@@ -1,15 +1,38 @@
 import JSZip from "jszip";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { loadStoryboard } from "../dist/index.js";
 
-const osz = await readFile("Panda Eyes - ILY.osz");
-const zip = await JSZip.loadAsync(osz);
+async function testMap(oszFile, difficulty) {
+  const osz = await readFile(oszFile);
+  const zip = await JSZip.loadAsync(osz);
 
-const osuString = await zip
-  .file("Panda Eyes - ILY (M a r v o l l o) [Light Insane].osu")
-  .async("string");
-const osbString = await zip
-  .file("Panda Eyes - ILY (M a r v o l l o).osb")
-  .async("string");
+  const osuFile = zip.filter(
+    (path) => path.endsWith(".osu") && path.includes(difficulty)
+  )[0];
 
-const storyboard = loadStoryboard(osuString)
+  const osbFile = zip.filter((path) => path.endsWith(".osb"))[0];
+
+  if (osbFile) {
+    console.log(`Testing ${osuFile.name} & ${osbFile.name} from ${oszFile}`);
+  } else {
+    console.log(`Testing ${osuFile.name} from ${oszFile}`);
+  }
+
+  const osuString = await osuFile.async("string");
+  const osbString = await osbFile?.async("string");
+
+  const startTime = performance.now();
+  const storyboard = loadStoryboard(osuString, osbString);
+  const elapsed = performance.now() - startTime;
+  console.log(`Processed in ${elapsed} ms`);
+
+  await writeFile(
+    `${oszFile} ${difficulty}.json`,
+    JSON.stringify(storyboard, null, 2)
+  );
+}
+await testMap("Panda Eyes - ILY.osz", "[Light Insane]");
+await testMap(
+  "Oedo Controller (feat. TORIENA) - yunomi.osz",
+  "[Enkrypteve's Advanced]"
+);

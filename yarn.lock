@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@types/node@^18.0.6":
+  version "18.0.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.0.6.tgz#0ba49ac517ad69abe7a1508bc9b3a5483df9d5d7"
+  integrity sha512-/xUq6H2aQm261exT6iZTMifUySEt4GR5KX8eYyY+C4MSNPqSh9oNIP7tz2GLKTlFaiBbgZNxffoR3CVRG+cljw==
+
 core-util-is@~1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
@@ -38,6 +43,11 @@ lie@~3.3.0:
   integrity sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==
   dependencies:
     immediate "~3.0.5"
+
+osu-classes@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/osu-classes/-/osu-classes-0.9.1.tgz#5a6d8e975c42beb6193b6cbd05fcca27e46cde4d"
+  integrity sha512-84LaoqMqypT9aGeHklwwftXa1fuUNKSHv1y8rcDM4eSsOAv8+ICo3MmpUswJXKh96rcIWhJG8X1mpmulubRkkQ==
 
 pako@~1.0.2:
   version "1.0.11"
