@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "repository": "https://github.com/blueberrymuffin3/osu-storyboard-parser.git",
   "author": "Evelyn Gordon <evelyn.gordon20@gmail.com>",
   "license": "MIT",
