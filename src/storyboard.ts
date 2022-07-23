@@ -19,7 +19,7 @@ export interface Storyboard {
 export function loadStoryboard(
   osuContent: string,
   osbContent?: string
-): Storyboard {
+): Storyboard | null {
   const entries = parseEntries(osuContent);
   console.log(`Loaded ${entries.length} from .osu`);
   if (osbContent) {
@@ -48,6 +48,16 @@ export function loadStoryboard(
       | "Foreground"
       | "Overlay";
     storyboard[layerName].push(object);
+  }
+
+  if (
+    storyboard.Background.length === 0 &&
+    storyboard.Fail.length === 0 &&
+    storyboard.Pass.length === 0 &&
+    storyboard.Foreground.length === 0 &&
+    storyboard.Overlay.length === 0
+  ) {
+    return null; // No objects
   }
 
   return storyboard;
