@@ -13,7 +13,7 @@ function numberOr(text: string, defaultValue: number) {
 export function loadStoryboard(
   osuContent: string,
   osbContent?: string
-): Object[] {
+): StoryboardObject[] {
   const entries = parseEntries(osuContent);
   console.log(`Loaded ${entries.length} from .osu`);
   if (osbContent) {
@@ -23,7 +23,7 @@ export function loadStoryboard(
 
   return entries
     .map(decodeEntry)
-    .filter((object) => object !== null) as Object[];
+    .filter((object) => object !== null) as StoryboardObject[];
 }
 
 export interface Entry {
@@ -110,7 +110,7 @@ interface Color {
   b: number;
 }
 
-export interface SpriteObject {
+interface StoryboardObjectBase {
   layer: ObjectLayer;
   origin: Origins;
   filepath: string;
@@ -118,15 +118,20 @@ export interface SpriteObject {
   commands: Command[];
 }
 
-export interface AnimationObject extends SpriteObject {
+export interface SpriteObject extends StoryboardObjectBase {
+  type: "Sprite";
+}
+
+export interface AnimationObject extends StoryboardObjectBase {
+  type: "Animation";
   frameCount: number;
   frameDelay: number;
   loops: boolean;
 }
 
-type Object = SpriteObject | AnimationObject;
+type StoryboardObject = SpriteObject | AnimationObject;
 
-function decodeEntry(entry: Entry): Object | null {
+function decodeEntry(entry: Entry): StoryboardObject | null {
   const type = entry.values[0];
 
   switch (type) {
@@ -166,6 +171,7 @@ function decodeEntry(entry: Entry): Object | null {
         const loops = loopType !== "LoopOnce"; // LoopForever is the default
 
         return {
+          type,
           layer,
           origin,
           filepath,
@@ -177,6 +183,7 @@ function decodeEntry(entry: Entry): Object | null {
         };
       } else {
         return {
+          type,
           layer,
           origin,
           filepath,
