@@ -52,7 +52,12 @@ export function decodeObject(entry: Entry): StoryboardObject | null {
         return null;
       }
 
-      const filepath = entry.values[3];
+      let filepath = entry.values[3];
+      // TODO: Does this need to be more robust?
+      if (filepath.startsWith('"') && filepath.endsWith('"')) {
+        filepath = filepath.substring(1, filepath.length - 1);
+      }
+
       const defaultPos: Coord = {
         x: Number(entry.values[4]),
         y: Number(entry.values[5]),
