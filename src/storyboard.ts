@@ -8,7 +8,13 @@ const INDENT_REGEX = /^([_ ]*)(.*)$/;
 const HEADER_REGEX = /^\[.*]$/;
 const HEADER_EVENTS_REGEX = /^\[Events]$/;
 
-export type Storyboard = StoryboardObject[];
+export interface Storyboard {
+  Background: StoryboardObject[];
+  Fail: StoryboardObject[];
+  Pass: StoryboardObject[];
+  Foreground: StoryboardObject[];
+  Overlay: StoryboardObject[];
+}
 
 export function loadStoryboard(
   osuContent: string,
@@ -21,11 +27,30 @@ export function loadStoryboard(
     console.log(`Loaded ${entries.length} from .osu+.osb`);
   }
 
-  const objects = entries
-    .map(decodeObject)
-    .filter((object) => object !== null) as StoryboardObject[];
+  const storyboard: Storyboard = {
+    Background: [],
+    Fail: [],
+    Pass: [],
+    Foreground: [],
+    Overlay: [],
+  };
 
-  return objects;
+  for (const entry of entries) {
+    const object = decodeObject(entry);
+    if (!object) {
+      continue;
+    }
+
+    const layerName = LayerType[object.layer] as
+      | "Background"
+      | "Fail"
+      | "Pass"
+      | "Foreground"
+      | "Overlay";
+    storyboard[layerName].push(object);
+  }
+
+  return storyboard;
 }
 
 function parseEntries(content: string) {
