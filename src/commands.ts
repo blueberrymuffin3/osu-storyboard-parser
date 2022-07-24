@@ -1,5 +1,5 @@
 import { Easing } from "osu-classes";
-import { Color, Coord, Entry } from "./types.js";
+import { Color, Coord, Entry, Parameter } from "./types.js";
 
 interface CommandBase<Type extends string, Value> {
   type: Type;
@@ -18,7 +18,7 @@ export type CommandScale = CommandBase<"S", number>;
 export type CommandVectorScale = CommandBase<"V", Coord>;
 export type CommandRotate = CommandBase<"R", number>;
 export type CommandColor = CommandBase<"C", Color>;
-export type CommandParam = CommandBase<"P", Color>;
+export type CommandParam = CommandBase<"P", Parameter>;
 export type Command =
   | CommandFade
   | CommandMove
@@ -63,7 +63,7 @@ const convertColorValue = ([r, g, b]: string[]): Color => ({
   g: Number(g),
   b: Number(b),
 });
-const convertParamValue = ([param]: string[]) => param;
+const convertParamValue = ([param]: string[]) => param as Parameter;
 
 const commandValueConverter = {
   F: defaultToEnd(convertNumberValue),
@@ -80,8 +80,9 @@ const commandValueConverter = {
 export function decodeCommand(entry: Entry): Command[] {
   switch (entry.values[0]) {
     case "L":
+      return unrollLoopCommand(entry);
     case "T":
-      return []; // TODO: Loops and Triggers
+      return []; // TODO: Triggers
     default:
       return decodeBasicCommand(entry);
   }
@@ -170,4 +171,30 @@ function decodeBasicCommand(entry: Entry): Command[] {
       return commands;
     }
   }
+}
+
+// TODO: Is memory cost of unrolling loops worth it?
+function unrollLoopCommand(entry: Entry): Command[] {
+  const children = entry.children.flatMap(decodeBasicCommand);
+  const startTime = Number(entry.values[1]);
+  const duration = children
+    .map((command) => command.endTime)
+    .reduce((a, b) => Math.max(a, b));
+  const loopCount = Number(entry.values[2]);
+
+  const commands: Command[] = [];
+
+  for (let i = 0; i < loopCount; i++) {
+    const iterationStartTime = startTime + i * duration;
+
+    commands.push(
+      ...children.map((child) => ({
+        ...child,
+        startTime: child.startTime + iterationStartTime,
+        endTime: child.endTime + iterationStartTime,
+      }))
+    );
+  }
+
+  return commands;
 }

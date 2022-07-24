@@ -95,6 +95,7 @@ export function decodeObject(entry: Entry): StoryboardObject | null {
     }
     case "0": // Background
     case "2": // Breaks
+    case "3": // Background Colour Transformations?
       return null;
     default: {
       console.warn(`Unknown type "${type}"`);

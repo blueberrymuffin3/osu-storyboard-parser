@@ -13,3 +13,5 @@ export interface Color {
   g: number;
   b: number;
 }
+
+export type Parameter = "A" | "H" | "V";

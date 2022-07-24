@@ -43,8 +43,5 @@ async function testMap(oszFile, id, difficulty) {
   );
 }
 await testMap("Panda Eyes - ILY.osz", 653534, "[Light Insane]");
-await testMap(
-  "Oedo Controller (feat. TORIENA) - yunomi.osz",
-  759903,
-  "[Enkrypteve's Advanced]"
-);
+await testMap("Oedo Controller (feat. TORIENA) - yunomi.osz", 759903, "[Enkrypteve's Advanced]");
+await testMap("world.execute(me) - Mili.osz", 470977, "mapset.extra");
