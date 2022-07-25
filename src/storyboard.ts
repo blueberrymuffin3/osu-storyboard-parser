@@ -5,8 +5,11 @@ import { Entry } from "./types.js";
 const INDENT_MAX_LEVEL = 2;
 const COMMENT_REGEX = /^\s*\/\//;
 const INDENT_REGEX = /^([_ ]*)(.*)$/;
-const HEADER_REGEX = /^\[.*]$/;
-const HEADER_EVENTS_REGEX = /^\[Events]$/;
+const HEADER_REGEX = /^\[.*]$/i;
+const HEADER_EVENTS_REGEX = /^\[Events]$/i;
+const HEADER_VARIABLES_REGEX = /^\[Variables]$/i;
+const VARIABLE_REGEX = /^(\$[^=]+)=(.+)$/;
+const VARIABLE_REPLACER_REGEX = /(\$[^,]+)/g;
 
 export interface Storyboard {
   Background: StoryboardObject[];
@@ -21,10 +24,10 @@ export function loadStoryboard(
   osbContent?: string
 ): Storyboard | null {
   const entries = parseEntries(osuContent);
-  console.log(`Loaded ${entries.length} from .osu`);
+  console.log(`Loaded ${entries.length} storyboard objects from .osu`);
   if (osbContent) {
-    entries.push(...parseEntries(osbContent));
-    console.log(`Loaded ${entries.length} from .osu+.osb`);
+    entries.push(...parseEntries(osbContent, true));
+    console.log(`Loaded ${entries.length} storyboard objects from .osu+.osb`);
   }
 
   const storyboard: Storyboard = {
@@ -63,10 +66,11 @@ export function loadStoryboard(
   return storyboard;
 }
 
-function parseEntries(content: string) {
+function parseEntries(content: string, variablesAllowed = false) {
   const lines = content.split(/\r?\n/);
 
-  let seenHeader = false;
+  let section: "variables" | "events" | null = null;
+  const variables = new Map<string, string>();
   const entries: Entry[] = [];
   const stack: Entry[] = [];
 
@@ -81,43 +85,71 @@ function parseEntries(content: string) {
       continue; // Empty Line
     }
 
-    if (seenHeader) {
-      if (HEADER_REGEX.test(line)) {
-        break; // We've reached another section (TimingPoints)
-      }
-    } else {
-      if (HEADER_EVENTS_REGEX.test(line)) {
-        seenHeader = true;
+    if (HEADER_REGEX.test(line)) {
+      section = null;
+      if (HEADER_VARIABLES_REGEX.test(line)) {
+        if (variablesAllowed) {
+          section = "variables";
+        } else {
+          console.warn("Illegal variables section found in osu file, ignoring");
+        }
+      } else if (HEADER_EVENTS_REGEX.test(line)) {
+        section = "events";
       }
 
       continue;
     }
 
-    const result = INDENT_REGEX.exec(line)!;
-
-    const indentLevel = result[1].length;
-    if (indentLevel > INDENT_MAX_LEVEL || indentLevel > stack.length) {
-      console.warn(`Unexpected indent on line ${i + 1}`);
-    }
-
-    const values = result[2].split(","); // TODO: Breaks on filenames with commas
-
-    stack.length = indentLevel + 1;
-    const entry = {
-      values,
-      children: [],
-    };
-    stack[indentLevel] = entry;
-
-    if (indentLevel > 0) {
-      const parent = stack[indentLevel - 1];
-      if (parent) {
-        parent.children.push(entry);
+    if (section === "variables") {
+      const result = VARIABLE_REGEX.exec(line);
+      if (result) {
+        variables.set(result[1], result[2]);
       } else {
-        console.warn(`Invalid indent on line ${i + 1}`);
+        console.warn(`Ignoring invalid variable: ${line}`);
       }
-    } else {
-      entries.push(entry);
+    } else if (section === "events") {
+      const result = INDENT_REGEX.exec(line)!;
+
+      const indentLevel = result[1].length;
+      if (indentLevel > INDENT_MAX_LEVEL || indentLevel > stack.length) {
+        console.warn(`Unexpected indent on line ${i + 1}`);
+      }
+
+      const content = result[2].replace(VARIABLE_REPLACER_REGEX, (variable) => {
+        if (!variablesAllowed) {
+          console.warn(
+            `Illegal variable reference "${variable}" found in osu file`
+          );
+          return variable;
+        }
+
+        const value = variables.get(variable);
+        if (!value) {
+          console.warn(`Unknown variable reference "${variable}"`);
+          return variable;
+        }
+        return value;
+      });
+
+      const values = content.split(","); // TODO: Breaks on filenames with commas
+
+      stack.length = indentLevel + 1;
+      const entry = {
+        values,
+        children: [],
+      };
+      stack[indentLevel] = entry;
+
+      if (indentLevel > 0) {
+        const parent = stack[indentLevel - 1];
+        if (parent) {
+          parent.children.push(entry);
+        } else {
+          console.warn(`Invalid indent on line ${i + 1}`);
+        }
+      } else {
+        entries.push(entry);
+      }
     }
   }
 

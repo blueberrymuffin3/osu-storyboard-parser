@@ -35,7 +35,7 @@ async function testMap(oszFile, id, difficulty) {
   const startTime = performance.now();
   const storyboard = loadStoryboard(osuString, osbString);
   const elapsed = performance.now() - startTime;
-  console.log(`Processed in ${elapsed.toFixed(2)} ms`);
+  console.log(`Processed storyboard in ${elapsed.toFixed(2)} ms`);
 
   await writeFile(
     `${oszFile} ${difficulty}.json`,
@@ -45,3 +45,4 @@ async function testMap(oszFile, id, difficulty) {
 await testMap("Panda Eyes - ILY.osz", 653534, "[Light Insane]");
 await testMap("Oedo Controller (feat. TORIENA) - yunomi.osz", 759903, "[Enkrypteve's Advanced]");
 await testMap("world.execute(me) - Mili.osz", 470977, "mapset.extra");
+await testMap("new beginnings - nekodex.osz", 1011011, "tutorial");
