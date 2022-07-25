@@ -93,6 +93,10 @@ export function decodeObject(entry: Entry): StoryboardObject | null {
         };
       }
     }
+    case "Sample": {
+      console.warn("Sample type not yet supported");
+      return null;
+    }
     case "0": // Background
     case "2": // Breaks
     case "3": // Background Colour Transformations?
