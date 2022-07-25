@@ -176,6 +176,12 @@ function decodeBasicCommand(entry: Entry): Command[] {
 // TODO: Is memory cost of unrolling loops worth it?
 function unrollLoopCommand(entry: Entry): Command[] {
   const children = entry.children.flatMap(decodeBasicCommand);
+
+  if (children.length == 0) {
+    console.warn("Loop has no valid children");
+    return [];
+  }
+
   const startTime = Number(entry.values[1]);
   const duration = children
     .map((command) => command.endTime)
