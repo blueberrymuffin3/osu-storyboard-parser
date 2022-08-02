@@ -23,12 +23,7 @@ export function loadStoryboard(
   osuContent: string,
   osbContent?: string
 ): Storyboard | null {
-  const entries = parseEntries(osuContent);
-  console.log(`Loaded ${entries.length} storyboard objects from .osu`);
-  if (osbContent) {
-    entries.push(...parseEntries(osbContent, true));
-    console.log(`Loaded ${entries.length} storyboard objects from .osu+.osb`);
-  }
+  const entries = getEntires(osuContent, osbContent);
 
   const storyboard: Storyboard = {
     Background: [],
@@ -64,6 +59,21 @@ export function loadStoryboard(
   }
 
   return storyboard;
+}
+
+function getEntires(osuContent: string, osbContent?: string) {
+  const osuEntries = parseEntries(osuContent);
+
+  console.log(`Loaded ${osuEntries.length} storyboard objects from .osu`);
+
+  if (osbContent) {
+    const osbEntries = parseEntries(osbContent, true);
+    console.log(`Loaded ${osbEntries.length} storyboard objects from .osu+.osb`);
+
+    return [...osuEntries, ...osbEntries];
+  }
+
+  return osuEntries;
 }
 
 function parseEntries(content: string, variablesAllowed = false) {
